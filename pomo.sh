@@ -133,6 +133,29 @@ function pomo_clock {
     fi
 }
 
+function pomo_bar_clock {
+    # Print out how much time is remaining in block.
+    # WMM:SS indicates MM:SS left in the work block.
+    # BMM:SS indicates MM:SS left in the break block.
+    if ! pomo_isstopped; then
+        pomo_update
+        running=$(pomo_stat)
+        left=$(( WORK_TIME*60 - running ))
+        if [[ $left -lt 0 ]]; then
+            left=$(( left + BREAK_TIME*60 ))
+            class=break
+        else
+            class=work
+        fi
+        pomo_ispaused && class=paused
+        min=$(( left / 60 ))
+        sec=$(( left - 60*min ))
+        printf "{\"text\": \"%02d:%02d\", \"class\": \"%s\"}" $min $sec $class
+    else
+        printf "{\"text\": \"--:--\", \"class\": \"paused\"}"
+    fi
+}
+
 function pomo_status {
     while true; do
         pomo_clock
@@ -216,7 +239,7 @@ function send_msg {
 function pomo_usage {
     # Print out usage message.
     cat <<END
-pomo.sh [-h] [-c file] [start | stop | pause | clock | status | notify | usage]
+pomo.sh [-h] [-c file] [start | stop | pause | clock | bar_clock | status | notify | usage]
 
 pomo.sh - a simple Pomodoro timer.
 
@@ -240,6 +263,8 @@ clock
     Pomodoro cycle.  A prefix of B indicates a break period, a prefix of
     W indicates a work period and a prefix of P indicates the current period is
     paused.
+bar_clock
+    Same as clock, display as waybar custom exec json type.
 notify
     Raise a notification at the end of every Pomodoro work and break block in
     an infinite loop.  Requires notify-send (linux) or osascript (OS X).
@@ -290,7 +315,7 @@ while getopts "hc:" arg; do
 done
 shift $((OPTIND-1))
 
-actions="start stop pause clock usage notify status"
+actions="start stop pause clock bar_clock usage notify status"
 for act in $actions; do
     if [[ $act == "$1" ]]; then
         action=$act
