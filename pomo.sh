@@ -228,7 +228,7 @@ function send_msg {
     if [ "$(uname)" == "Darwin" ]; then
         osascript -e "tell app \"System Events\" to display dialog \"${1}\"" &> /dev/null
     elif command -v notify-send &> /dev/null; then
-        notify-send -a "Pomodoro" "${1}"
+        notify-send -a "Pomodoro" -i "$ICON_FILE" "${1}"
     else
         echo "${1}"
     fi
@@ -330,6 +330,7 @@ POMO=${POMO_FILE:-"$HOME/.local/share/pomo"}
 WORK_TIME=${POMO_WORK_TIME:-25}
 BREAK_TIME=${POMO_BREAK_TIME:-5}
 MSG_CALLBACK=${POMO_MSG_CALLBACK:-pomo_msg_callback}
+ICON_FILE=$(dirname "$0")/icon.png
 
 #--- Run! ---
 
